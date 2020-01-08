@@ -24,7 +24,6 @@ file(GLOB_RECURSE
 
 file(GLOB
     project_files
-    main.c
     serial_io.c
     sntp.c
     unittest.c
@@ -34,6 +33,17 @@ file(GLOB
 file(GLOB
      vpn_files
      vpnhook.c
+     udp_backbone.c
+     )
+
+file(GLOB
+     srv_files
+     main.c
+     )
+
+file(GLOB
+     mgr_files
+     vpnmgr.c
      )
 
 include_directories(./)
@@ -46,7 +56,7 @@ include_directories(${lwip_root}/contrib/ports/unix/port/include)
 find_package (Threads)
 add_library(
     vpnsock SHARED
-    ${vpn_files} 
+    ${vpn_files}
     ${core_files}
     ${port_files}
 )
@@ -56,10 +66,19 @@ set_target_properties(vpnsock PROPERTIES SOVERSION 1)
 
 # Executable source file definitions
 add_executable(
-    robot
-    ${core_files}
-    ${port_files}
+    server
+    ${srv_files}
+)
+add_executable(
+    vpnmgr
     ${project_files}
+    ${mgr_files}
 )
 
-target_link_libraries(robot ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(vpnmgr PUBLIC vpnsock)
+target_link_libraries(vpnmgr vpnsock ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(vpnmgr ${CMAKE_DL_LIBS})
+
+target_link_libraries(server PUBLIC vpnsock)
+target_link_libraries(server vpnsock ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(server ${CMAKE_DL_LIBS})
